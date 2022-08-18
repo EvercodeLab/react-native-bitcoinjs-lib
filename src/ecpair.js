@@ -1,7 +1,9 @@
+var rnQuickCrypto = require('react-native-quick-crypto')
+
 var baddress = require('./address')
 var bcrypto = require('./crypto')
 var ecdsa = require('./ecdsa')
-var randomBytes = require('react-native-randombytes').randomBytes
+var randomBytes = rnQuickCrypto.randomBytes
 var typeforce = require('typeforce')
 var types = require('./types')
 var wif = require('wif')
@@ -109,7 +111,16 @@ ECPair.prototype.getNetwork = function () {
 }
 
 ECPair.prototype.getPublicKeyBuffer = function () {
-  return this.Q.getEncoded(this.compressed)
+  const keyPair = rnQuickCrypto
+    .createECDH('secp256k1')
+    .setPrivateKey(this.d.toBuffer(32))
+
+  const publicKey = keyPair.getPublicKey(
+    'hex',
+    this.compressed ? 'compressed' : 'uncompressed',
+  )
+
+  return Buffer.from(publicKey, 'hex')
 }
 
 ECPair.prototype.sign = function (hash) {
